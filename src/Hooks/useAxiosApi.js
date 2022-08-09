@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { DateTime } from 'luxon';
+import { useNavigate } from 'react-router-dom';
 
 import useRefreshToken from './useRefreshToken';
 import useAuth from './useAuth';
@@ -9,6 +10,7 @@ import httpApi from 'Services/Http';
 const useAxiosApi = () => {
     const refresh = useRefreshToken();
     const { auth } = useAuth();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const requestIntercept = httpApi.interceptors.request.use(
@@ -40,6 +42,8 @@ const useAxiosApi = () => {
                     prevRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
 
                     return httpApi(prevRequest);
+                } else if (error?.response?.status === 401 && !prevRequest?.sent) {
+                    return navigate('/permission-denied');
                 }
 
                 return Promise.reject(error);
